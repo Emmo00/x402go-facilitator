@@ -1,6 +1,5 @@
 import { verify as verifyExactEvm, settle as settleExactEvm } from "../schemes/exact/evm";
-import { verify as verifyExactSvm, settle as settleExactSvm } from "../schemes/exact/svm";
-import { SupportedEVMNetworks, SupportedSVMNetworks } from "../types/shared";
+import { Network, SupportedEVMNetworks } from "../types/shared";
 import { X402Config } from "../types/config";
 import {
   ConnectedClient as EvmConnectedClient,
@@ -15,7 +14,6 @@ import {
   ExactEvmPayload,
 } from "../types/verify";
 import { Chain, Transport, Account } from "viem";
-import { TransactionSigner } from "@solana/kit";
 
 /**
  * Verifies a payment payload against the required payment details regardless of the scheme
@@ -27,11 +25,7 @@ import { TransactionSigner } from "@solana/kit";
  * @param config - Optional configuration for X402 operations (e.g., custom RPC URLs)
  * @returns A ValidPaymentRequest indicating if the payment is valid and any invalidation reason
  */
-export async function verify<
-  transport extends Transport,
-  chain extends Chain,
-  account extends Account | undefined,
->(
+export async function verify(
   client: ConnectedClient | Signer,
   payload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
@@ -40,21 +34,11 @@ export async function verify<
   // exact scheme
   if (paymentRequirements.scheme === "exact") {
     // evm
-    if (SupportedEVMNetworks.includes(paymentRequirements.network)) {
+    if (SupportedEVMNetworks.includes(paymentRequirements.network as Network)) {
       return verifyExactEvm(
-        client as EvmConnectedClient<transport, chain, account>,
+        client as EvmConnectedClient<Transport, Chain, Account | undefined>,
         payload,
         paymentRequirements,
-      );
-    }
-
-    // svm
-    if (SupportedSVMNetworks.includes(paymentRequirements.network)) {
-      return await verifyExactSvm(
-        client as TransactionSigner,
-        payload,
-        paymentRequirements,
-        config,
       );
     }
   }
@@ -63,9 +47,9 @@ export async function verify<
   return {
     isValid: false,
     invalidReason: "invalid_scheme",
-    payer: SupportedEVMNetworks.includes(paymentRequirements.network)
+    payer: SupportedEVMNetworks.includes(paymentRequirements.network as Network)
       ? (payload.payload as ExactEvmPayload).authorization.from
-      : "",
+      : undefined,
   };
 }
 
@@ -88,21 +72,11 @@ export async function settle<transport extends Transport, chain extends Chain>(
   // exact scheme
   if (paymentRequirements.scheme === "exact") {
     // evm
-    if (SupportedEVMNetworks.includes(paymentRequirements.network)) {
+    if (SupportedEVMNetworks.includes(paymentRequirements.network as Network)) {
       return await settleExactEvm(
-        client as EvmSignerWallet<chain, transport>,
+        client as EvmSignerWallet<Chain, Transport>,
         payload,
         paymentRequirements,
-      );
-    }
-
-    // svm
-    if (SupportedSVMNetworks.includes(paymentRequirements.network)) {
-      return await settleExactSvm(
-        client as TransactionSigner,
-        payload,
-        paymentRequirements,
-        config,
       );
     }
   }
@@ -112,7 +86,7 @@ export async function settle<transport extends Transport, chain extends Chain>(
     errorReason: "invalid_scheme",
     transaction: "",
     network: paymentRequirements.network,
-    payer: SupportedEVMNetworks.includes(paymentRequirements.network)
+    payer: SupportedEVMNetworks.includes(paymentRequirements.network as Network)
       ? (payload.payload as ExactEvmPayload).authorization.from
       : "",
   };

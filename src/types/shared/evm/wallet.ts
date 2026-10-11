@@ -10,21 +10,7 @@ import type {
   PublicClient,
   LocalAccount,
 } from "viem";
-import {
-  baseSepolia,
-  avalancheFuji,
-  base,
-  sei,
-  seiTestnet,
-  polygon,
-  polygonAmoy,
-  peaq,
-  avalanche,
-  iotexTestnet,
-  iotex,
-  abstract,
-  abstractTestnet,
-} from "viem/chains";
+import { celo, celoSepolia } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { Hex } from "viem";
 import { eip712WalletActions } from "viem/zksync";
@@ -70,38 +56,6 @@ export function createConnectedClient(
 }
 
 /**
- * Creates a public client configured for the Base Sepolia testnet
- *
- * @deprecated Use `createConnectedClient("base-sepolia")` instead
- * @returns A public client instance connected to Base Sepolia
- */
-export function createClientSepolia(
-  rpcUrl?: string,
-): ConnectedClient<Transport, typeof baseSepolia, undefined> {
-  return createConnectedClient("base-sepolia", rpcUrl) as ConnectedClient<
-    Transport,
-    typeof baseSepolia,
-    undefined
-  >;
-}
-
-/**
- * Creates a public client configured for the Avalanche Fuji testnet
- *
- * @deprecated Use `createConnectedClient("avalanche-fuji")` instead
- * @returns A public client instance connected to Avalanche Fuji
- */
-export function createClientAvalancheFuji(
-  rpcUrl?: string,
-): ConnectedClient<Transport, typeof avalancheFuji, undefined> {
-  return createConnectedClient("avalanche-fuji", rpcUrl) as ConnectedClient<
-    Transport,
-    typeof avalancheFuji,
-    undefined
-  >;
-}
-
-/**
  * Creates a wallet client configured for the specified chain with a private key
  *
  * @param network - The network to connect to
@@ -126,34 +80,6 @@ export function createSigner(
   }
 
   return walletClient.extend(publicActions);
-}
-
-/**
- * Creates a wallet client configured for the Base Sepolia testnet with a private key
- *
- * @deprecated Use `createSigner("base-sepolia", privateKey)` instead
- * @param privateKey - The private key to use for signing transactions
- * @returns A wallet client instance connected to Base Sepolia with the provided private key
- */
-export function createSignerSepolia(
-  privateKey: Hex,
-  rpcUrl?: string,
-): SignerWallet<typeof baseSepolia> {
-  return createSigner("base-sepolia", privateKey, rpcUrl) as SignerWallet<typeof baseSepolia>;
-}
-
-/**
- * Creates a wallet client configured for the Avalanche Fuji testnet with a private key
- *
- * @deprecated Use `createSigner("avalanche-fuji", privateKey)` instead
- * @param privateKey - The private key to use for signing transactions
- * @returns A wallet client instance connected to Avalanche Fuji with the provided private key
- */
-export function createSignerAvalancheFuji(
-  privateKey: Hex,
-  rpcUrl?: string,
-): SignerWallet<typeof avalancheFuji> {
-  return createSigner("avalanche-fuji", privateKey, rpcUrl) as SignerWallet<typeof avalancheFuji>;
 }
 
 /**
@@ -212,48 +138,11 @@ export function getChainFromNetwork(network: string | undefined): Chain {
   }
 
   switch (network) {
-    case "abstract":
-      return abstract;
-    case "abstract-testnet":
-      return abstractTestnet;
-    case "base":
-      return base;
-    case "base-sepolia":
-      return baseSepolia;
-    case "avalanche":
-      return avalanche;
-    case "avalanche-fuji":
-      return avalancheFuji;
-    case "sei":
-      return sei;
-    case "sei-testnet":
-      return seiTestnet;
-    case "polygon":
-      return polygon;
-    case "polygon-amoy":
-      return polygonAmoy;
-    case "peaq":
-      return peaq;
-    case "iotex":
-      return iotex;
-    case "iotex-testnet":
-      return iotexTestnet;
+    case "celo":
+      return celo;
+    case "celo-sepolia":
+      return celoSepolia;
     default:
       throw new Error(`Unsupported network: ${network}`);
   }
-}
-
-const ZKSTACK_CHAIN_IDS = new Set([
-  2741, // Abstract Mainnet
-  11124, // Abstract Sepolia Testnet
-]);
-
-/**
- * Checks whether the given chain is part of the zkstack stack
- *
- * @param chain - The chain to check
- * @returns True if the chain is a ZK stack chain
- */
-export function isZkStackChain(chain: Chain): boolean {
-  return ZKSTACK_CHAIN_IDS.has(chain.id);
 }

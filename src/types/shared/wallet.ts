@@ -1,12 +1,11 @@
 import * as evm from "./evm/wallet";
-import * as svm from "../../shared/svm/wallet";
-import { SupportedEVMNetworks, SupportedSVMNetworks } from "./network";
+import { SupportedEVMNetworks } from "./network";
 import { Hex } from "viem";
 import { X402Config } from "../config";
 
-export type ConnectedClient = evm.ConnectedClient | svm.SvmConnectedClient;
-export type Signer = evm.EvmSigner | svm.SvmSigner;
-export type MultiNetworkSigner = { evm: evm.EvmSigner; svm: svm.SvmSigner };
+export type ConnectedClient = evm.ConnectedClient;
+export type Signer = evm.EvmSigner;
+export type MultiNetworkSigner = { evm: evm.EvmSigner };
 
 /**
  * Creates a public client configured for the specified network.
@@ -19,10 +18,6 @@ export function createConnectedClient(network: string, config?: X402Config): Con
   if (SupportedEVMNetworks.find(n => n === network)) {
     const rpcUrl = config?.evmConfig?.rpcUrl;
     return evm.createConnectedClient(network, rpcUrl);
-  }
-
-  if (SupportedSVMNetworks.find(n => n === network)) {
-    return svm.createSvmConnectedClient(network);
   }
 
   throw new Error(`Unsupported network: ${network}`);
@@ -46,10 +41,6 @@ export function createSigner(
     return Promise.resolve(evm.createSigner(network, privateKey as Hex, rpcUrl));
   }
 
-  if (SupportedSVMNetworks.find(n => n === network)) {
-    return svm.createSignerFromBase58(privateKey as string);
-  }
-
   throw new Error(`Unsupported network: ${network}`);
 }
 
@@ -61,16 +52,6 @@ export function createSigner(
  */
 export function isEvmSignerWallet(wallet: Signer): wallet is evm.EvmSigner {
   return evm.isSignerWallet(wallet as evm.EvmSigner) || evm.isAccount(wallet as evm.EvmSigner);
-}
-
-/**
- * Checks if the given wallet is an SVM signer wallet
- *
- * @param wallet - The object wallet to check
- * @returns True if the wallet is an SVM signer wallet, false otherwise
- */
-export function isSvmSignerWallet(wallet: Signer): wallet is svm.SvmSigner {
-  return svm.isSignerWallet(wallet);
 }
 
 /**
