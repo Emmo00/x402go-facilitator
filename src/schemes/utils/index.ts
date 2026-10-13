@@ -1,4 +1,3 @@
-export * from "../exact/evm/utils/paymentUtils";
 import type {
   PaymentPayload,
   PaymentRequirements,
@@ -16,8 +15,15 @@ export const getPayloadScheme = (p: PaymentPayload) => getPayloadAccepted(p).sch
 export const getPayloadNetwork = (p: PaymentPayload) => getPayloadAccepted(p).network;
 
 export const getAmountRequirement = (
-  req: PaymentRequirements | { amount: string; maxAmountRequired: string },
-) => BigInt(req.maxAmountRequired ?? req.amount);
+  req: PaymentRequirements ,
+) => {
+  const maxAmount =
+    'maxAmountRequired' in req
+      ? req.maxAmountRequired
+      : req.amount;
+
+  return BigInt(maxAmount)
+}
 
 export const isPermit2Payload = (p: PaymentPayloadV2["payload"]): p is ExactEvmPermit2Payload =>
   "permit2Authorization" in p;
