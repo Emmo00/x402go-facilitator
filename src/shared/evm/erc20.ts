@@ -10,12 +10,8 @@ import { ConnectedClient } from "../../types/shared/evm/wallet";
  * @param address - The address to check the USDC balance for
  * @returns A promise that resolves to the USDC balance as a bigint
  */
-export async function getERC20Balance<
-  transport extends Transport,
-  chain extends Chain,
-  account extends Account | undefined = undefined,
->(
-  client: ConnectedClient<transport, chain, account>,
+export async function getERC20Balance(
+  client: ConnectedClient,
   erc20Address: Address,
   address: Address,
 ): Promise<bigint> {

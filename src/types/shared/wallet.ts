@@ -35,10 +35,10 @@ export function createSigner(
   network: string,
   privateKey: Hex | string,
   config?: X402Config,
-): Promise<Signer> {
+): Signer {
   if (SupportedEVMNetworks.find(n => n === network)) {
     const rpcUrl = config?.evmConfig?.rpcUrl;
-    return Promise.resolve(evm.createSigner(network, privateKey as Hex, rpcUrl));
+    return evm.createSigner(network, privateKey as Hex, rpcUrl);
   }
 
   throw new Error(`Unsupported network: ${network}`);

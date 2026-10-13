@@ -13,7 +13,6 @@ import type {
 import { celo, celoSepolia } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
 import { Hex } from "viem";
-import { eip712WalletActions } from "viem/zksync";
 
 // Create a public client for reading data
 export type SignerWallet<
@@ -28,11 +27,7 @@ export type SignerWallet<
   PublicActions<transport, chain, account> & WalletActions<chain, account>
 >;
 
-export type ConnectedClient<
-  transport extends Transport = Transport,
-  chain extends Chain | undefined = Chain,
-  account extends Account | undefined = undefined,
-> = PublicClient<transport, chain, account>;
+export type ConnectedClient = PublicClient<Transport, Chain, undefined>;
 
 export type EvmSigner = SignerWallet<Chain, Transport, Account> | LocalAccount;
 
@@ -46,7 +41,7 @@ export type EvmSigner = SignerWallet<Chain, Transport, Account> | LocalAccount;
 export function createConnectedClient(
   network: string,
   rpcUrl?: string,
-): ConnectedClient<Transport, Chain, undefined> {
+): ConnectedClient {
   const chain = getChainFromNetwork(network);
 
   return createPublicClient({

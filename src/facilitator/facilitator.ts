@@ -36,7 +36,7 @@ export async function verify(
     // evm
     if (SupportedEVMNetworks.includes(paymentRequirements.network as Network)) {
       return verifyExactEvm(
-        client as EvmConnectedClient<Transport, Chain, Account | undefined>,
+        client as EvmConnectedClient,
         payload,
         paymentRequirements,
       );

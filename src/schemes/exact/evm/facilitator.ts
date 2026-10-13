@@ -81,10 +81,11 @@ const REVERT_REASONS: Record<any, any> = {
 };
 
 export async function prepare(
-  client: ConnectedClient<Transport, Chain, Account>,
+  client: ConnectedClient,
   payload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
-  deploymentContext?: VaultDeploymentContext,
+  operatorAddress: Address,
+  deploymentContext: VaultDeploymentContext,
 ): Promise<Prepared> {
   const isV2 = payload.x402Version === 2;
   const accepted = getPayloadAccepted(payload);
@@ -96,7 +97,7 @@ export async function prepare(
   }
 
   const chainId = chain.chain.id;
-  const sender = client.account.address;
+  const sender = operatorAddress;
   if (!sender) return bad("simulation_failed");
 
   if (accepted.scheme !== SCHEME || paymentRequirements.scheme !== SCHEME)
@@ -306,7 +307,7 @@ export async function prepare(
 }
 
 function simulate(
-  client: ConnectedClient<Transport, Chain, Account>,
+  client: ConnectedClient,
   account: Address,
   vault: Address,
   params: SimulateSettleParameters,
@@ -329,7 +330,7 @@ function simulate(
 }
 
 function simulateWithDeploy(
-  client: ConnectedClient<Transport, Chain, Account>,
+  client: ConnectedClient,
   account: Address,
   factory: Address,
   deploymentContext: VaultDeploymentContext,
@@ -356,7 +357,7 @@ function simulateWithDeploy(
 const vaultCache = new Set<Address>();
 
 async function isOurVault(
-  client: ConnectedClient<Transport, Chain, Account | undefined>,
+  client: ConnectedClient,
   payTo: Address,
 ): Promise<boolean> {
   if (vaultCache.has(payTo)) return true;
@@ -386,11 +387,13 @@ async function isOurVault(
 }
 
 export async function verify(
-  client: ConnectedClient<Transport, Chain, Account>,
+  client: ConnectedClient,
   payload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
+  operatorAddress: Address,
+  deploymentContext: VaultDeploymentContext
 ): Promise<VerifyResponse> {
-  const r = await prepare(client, payload, paymentRequirements);
+  const r = await prepare(client, payload, paymentRequirements, operatorAddress, deploymentContext);
   return r.ok
     ? { isValid: true, invalidReason: undefined, payer: r.payer }
     : { isValid: false, invalidReason: r.reason, payer: r.payer };
@@ -420,13 +423,14 @@ export async function settle(
   wallet: SignerWallet<Chain, Transport>,
   paymentPayload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
+  deploymentContext: VaultDeploymentContext
 ): Promise<SettleResponse> {
   const key = settlementKey(paymentPayload);
 
   const existing = recent.get(key);
   if (existing && Date.now() - existing.at < RETRY_WINDOW_MS) return existing.promise;
 
-  const promise = doSettle(wallet, paymentPayload, paymentRequirements).then(res => {
+  const promise = doSettle(wallet, paymentPayload, paymentRequirements, deploymentContext).then(res => {
     if (!res.success) recent.delete(key); // only successes are replayed; failures may be retried
     return res;
   });
@@ -438,6 +442,7 @@ async function doSettle<transport extends Transport, chain extends Chain>(
   wallet: SignerWallet<Chain, Transport>,
   paymentPayload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
+  deploymentContext: VaultDeploymentContext,
 ): Promise<SettleResponse> {
   const network = getPayloadNetwork(paymentPayload);
   const fail = (
@@ -453,7 +458,7 @@ async function doSettle<transport extends Transport, chain extends Chain>(
   });
 
   // 1. Re-verify now (state may have changed since /verify) and build the exact call to send
-  const prepared = await prepare(wallet, paymentPayload, paymentRequirements);
+  const prepared = await prepare(wallet as unknown as ConnectedClient, paymentPayload, paymentRequirements, wallet.account?.address ?? "", deploymentContext);
   if (!prepared.ok) return fail(prepared.reason, { payer: prepared.payer });
   const { payer, vault, request } = prepared;
 
