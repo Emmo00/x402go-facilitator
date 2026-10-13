@@ -75,10 +75,6 @@ export function createSigner(
     account: privateKeyToAccount(privateKey),
   });
 
-  if (isZkStackChain(chain)) {
-    return walletClient.extend(publicActions).extend(eip712WalletActions());
-  }
-
   return walletClient.extend(publicActions);
 }
 
