@@ -14,7 +14,7 @@ import {
   ContractFunctionRevertedError,
   SimulateContractReturnType,
 } from "viem";
-import { getNetworkId } from "../../../shared";
+import type { VaultDeploymentContext } from "../../../types/config";
 import { getERC20Balance } from "../../../shared/evm";
 import {
   authorizationTypes,
@@ -43,7 +43,6 @@ import {
 } from "../../utils";
 import {
   FACTORY,
-  FACILITATOR,
   PERMIT2,
   X402_PROXY,
   resolveChain,
@@ -60,8 +59,6 @@ import {
 type Prepared =
   | { ok: true; payer: Address; vault: Address; request: SimulateContractReturnType["request"] }
   | { ok: false; reason: (typeof ErrorReasons)[number]; payer?: Address };
-
-type VaultDeploymentContext = { merchant: Address; payout: Address };
 
 type SimulateSettleParameters =
   | { type: "settle"; args: [Address, any] }

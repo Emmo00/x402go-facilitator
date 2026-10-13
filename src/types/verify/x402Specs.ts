@@ -127,7 +127,8 @@ export const PaymentRequirementsSchema = z.union([
   PaymentRequirementsV1Schema,
   PaymentRequirementsV2Schema,
 ]);
-export type PaymentRequirements = z.infer<typeof PaymentRequirementsSchema>;
+
+export type PaymentRequirements = PaymentRequirementsV1 | PaymentRequirementsV2;
 
 // x402ExactEvmPayload
 export const ExactEvmPayloadAuthorizationSchema = z.object({

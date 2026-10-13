@@ -29,16 +29,21 @@ export async function verify(
   client: ConnectedClient | Signer,
   payload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
-  config?: X402Config,
+  config: X402Config,
 ): Promise<VerifyResponse> {
   // exact scheme
   if (paymentRequirements.scheme === "exact") {
+    if (!config.operatorAddress) {
+      throw new Error("Operator address is required for exact scheme verification");
+    }
     // evm
     if (SupportedEVMNetworks.includes(paymentRequirements.network as Network)) {
       return verifyExactEvm(
         client as EvmConnectedClient,
         payload,
         paymentRequirements,
+        config.operatorAddress,
+        config.deploymentContext,
       );
     }
   }
@@ -67,7 +72,7 @@ export async function settle<transport extends Transport, chain extends Chain>(
   client: Signer,
   payload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
-  config?: X402Config,
+  config: X402Config,
 ): Promise<SettleResponse> {
   // exact scheme
   if (paymentRequirements.scheme === "exact") {
@@ -77,6 +82,7 @@ export async function settle<transport extends Transport, chain extends Chain>(
         client as EvmSignerWallet<Chain, Transport>,
         payload,
         paymentRequirements,
+        config.deploymentContext,
       );
     }
   }

@@ -27,8 +27,6 @@ export interface ChainConfig {
 
 export const FACTORY: Address = "0x2812dD80f3a71c154F40AF036C8F18A36eCF9868"
 
-export const FACILITATOR: Address = "0x402001B3fbf1462939657eb7f64EE3743eAdf35E"
-
 export const PERMIT2: Address = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
 
 export const X402_PROXY: Address = "0x402085c248EeA27D92E8b30b2C58ed07f9E20001";
