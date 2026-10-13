@@ -61,6 +61,12 @@ type Prepared =
   | { ok: true; payer: Address; vault: Address; request: SimulateContractReturnType["request"] }
   | { ok: false; reason: (typeof ErrorReasons)[number]; payer?: Address };
 
+type VaultDeploymentContext = { merchant: Address; payout: Address };
+
+type SimulateSettleParameters =
+  | { type: "settle"; args: [Address, any] }
+  | { type: "settleWithPermit2"; args: [any, Address, any, Hex] };
+
 const bad = (invalidReason: (typeof ErrorReasons)[number], payer?: Address): Prepared => ({
   ok: false,
   reason: invalidReason,
@@ -75,9 +81,10 @@ const REVERT_REASONS: Record<any, any> = {
 };
 
 export async function prepare(
-  client: ConnectedClient<Transport, Chain, Account | undefined>,
+  client: ConnectedClient<Transport, Chain, Account>,
   payload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
+  deploymentContext?: VaultDeploymentContext,
 ): Promise<Prepared> {
   const isV2 = payload.x402Version === 2;
   const accepted = getPayloadAccepted(payload);
@@ -88,9 +95,9 @@ export async function prepare(
     return bad("invalid_network");
   }
 
-  const chainId = isV2
-    ? Number(paymentRequirements.network.split(":")[1])
-    : getNetworkId(payload.network);
+  const chainId = chain.chain.id;
+  const sender = client.account.address;
+  if (!sender) return bad("simulation_failed");
 
   if (accepted.scheme !== SCHEME || paymentRequirements.scheme !== SCHEME)
     return bad("unsupported_scheme");
@@ -113,24 +120,28 @@ export async function prepare(
   if (method !== asset.assetTransferMethod) return bad("unsupported_transfer_method");
 
   // 2. payTo must be one of our vaults
-  if (!(await isOurVault(client, payTo))) return bad("invalid_pay_to");
+  const code = await client.getCode({ address: payTo });
+  const deployed = !!code && code !== "0x" && code !== "0x0";
 
-  // 3. Fee sanity (same conditions the vault enforces)
-  const fee = (await client.readContract({
-    address: FACTORY,
-    abi: factoryAbi,
-    functionName: "tokenFee",
-    args: [token],
-  })) as unknown as bigint;
+  if (deployed) {
+    if (!(await isOurVault(client, payTo))) return bad("invalid_pay_to");
+  } else {
+    if (!deploymentContext) return bad("invalid_pay_to");
+    const expected = (await client.readContract({
+      address: FACTORY,
+      abi: factoryAbi,
+      functionName: "vaultOf",
+      args: [deploymentContext.merchant],
+    })) as unknown as Address;
 
-  if (fee === 0n) return bad("token_not_supported");
-  if (amount <= fee) return bad("amount_below_fee");
+    if (!isAddressEqual(payTo, expected)) return bad("invalid_pay_to");
+  }
 
   const now = (await client.getBlock()).timestamp;
   const BUFFER = 6n; // round-trip padding
 
   let payer: Address;
-  let simulate: () => Promise<unknown>;
+  let simulateParameters: SimulateSettleParameters;
 
   if (method === "eip3009") {
     const { authorization: a, signature } = payload.payload as unknown as {
@@ -178,27 +189,24 @@ export async function prepare(
     if (!ok) return bad("invalid_exact_evm_payload_signature", payer);
 
     const { r, s, v, yParity } = parseSignature(signature);
-    simulate = () =>
-      client.simulateContract({
-        account: FACILITATOR,
-        address: payTo,
-        abi: vaultAbi,
-        functionName: "settle",
-        args: [
-          token,
-          {
-            // match your Eip3009Authorization field order
-            from: payer,
-            value: amount,
-            validAfter: BigInt(a.validAfter),
-            validBefore: BigInt(a.validBefore),
-            nonce: a.nonce,
-            v: Number(v ?? 27n + BigInt(yParity)),
-            r,
-            s,
-          },
-        ],
-      });
+
+    simulateParameters = {
+      type: "settle",
+      args: [
+        token,
+        {
+          // match your Eip3009Authorization field order
+          from: payer,
+          value: amount,
+          validAfter: BigInt(a.validAfter),
+          validBefore: BigInt(a.validBefore),
+          nonce: a.nonce,
+          v: Number(v ?? 27n + BigInt(yParity)),
+          r,
+          s,
+        },
+      ],
+    };
   } else {
     const { permit2Authorization: p, signature } = payload.payload as unknown as {
       permit2Authorization: ExactEvmPermit2Payload["permit2Authorization"];
@@ -258,19 +266,15 @@ export async function prepare(
       return bad("permit2_allowance_required", payer);
     }
 
-    simulate = () =>
-      client.simulateContract({
-        account: FACILITATOR,
-        address: payTo,
-        abi: vaultAbi,
-        functionName: "settleWithPermit2",
-        args: [
-          { permitted: { token, amount }, nonce, deadline: BigInt(p.deadline) },
-          payer,
-          { to: payTo, validAfter: BigInt(p.witness.validAfter) },
-          signature,
-        ],
-      });
+    simulateParameters = {
+      type: "settleWithPermit2",
+      args: [
+        { permitted: { token, amount }, nonce, deadline: BigInt(p.deadline) },
+        payer,
+        { to: payTo, validAfter: BigInt(p.witness.validAfter) },
+        signature,
+      ],
+    };
   }
 
   // check balance
@@ -280,7 +284,15 @@ export async function prepare(
 
   // 5. Source of truth: simulate the exact call /settle will send
   try {
-    const { request } = (await simulate()) as unknown as SimulateContractReturnType;
+    const { request } = (await (deployed
+      ? simulate(client, sender, payTo, simulateParameters)
+      : simulateWithDeploy(
+          client,
+          sender,
+          FACTORY,
+          deploymentContext!,
+          simulateParameters,
+        ))) as unknown as SimulateContractReturnType;
     return { ok: true, payer, vault: payTo, request };
   } catch (e) {
     const revert =
@@ -291,6 +303,53 @@ export async function prepare(
         : null;
     return bad(REVERT_REASONS[revert?.data?.errorName ?? ""] ?? "simulation_failed", payer);
   }
+}
+
+function simulate(
+  client: ConnectedClient<Transport, Chain, Account>,
+  account: Address,
+  vault: Address,
+  params: SimulateSettleParameters,
+) {
+  return params.type === "settle"
+    ? client.simulateContract({
+        account,
+        address: vault,
+        abi: vaultAbi,
+        functionName: "settle",
+        args: params.args,
+      })
+    : client.simulateContract({
+        account,
+        address: vault,
+        abi: vaultAbi,
+        functionName: "settleWithPermit2",
+        args: params.args,
+      });
+}
+
+function simulateWithDeploy(
+  client: ConnectedClient<Transport, Chain, Account>,
+  account: Address,
+  factory: Address,
+  deploymentContext: VaultDeploymentContext,
+  params: SimulateSettleParameters,
+) {
+  return params.type === "settle"
+    ? client.simulateContract({
+        account,
+        address: factory,
+        abi: factoryAbi,
+        functionName: "createVaultAndSettle",
+        args: [deploymentContext.merchant, deploymentContext.payout, ...params.args],
+      })
+    : client.simulateContract({
+        account,
+        address: factory,
+        abi: factoryAbi,
+        functionName: "createVaultAndSettleWithPermit2",
+        args: [deploymentContext.merchant, deploymentContext.payout, ...params.args],
+      });
 }
 
 // Cache positive results forever: a vault's address and merchant never change.
@@ -327,7 +386,7 @@ async function isOurVault(
 }
 
 export async function verify(
-  client: ConnectedClient<Transport, Chain, Account | undefined>,
+  client: ConnectedClient<Transport, Chain, Account>,
   payload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
 ): Promise<VerifyResponse> {
