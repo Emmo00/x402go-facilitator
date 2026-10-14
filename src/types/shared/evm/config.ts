@@ -25,7 +25,7 @@ export interface ChainConfig {
   assets: AssetConfig[];
 }
 
-export const FACTORY: Address = "0x2812dD80f3a71c154F40AF036C8F18A36eCF9868"
+export const FACTORY: Address = "0xD271d2009Da5e544B9dc0c63C2342478c153fCcE"
 
 export const PERMIT2: Address = "0x000000000022D473030F116dDEE9F6B43aC78BA3";
 
