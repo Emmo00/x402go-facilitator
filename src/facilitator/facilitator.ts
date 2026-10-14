@@ -14,6 +14,7 @@ import {
   ExactEvmPayload,
 } from "../types/verify";
 import { Chain, Transport, Account } from "viem";
+import { buildSupported } from "../schemes/exact/evm/supported";
 
 /**
  * Verifies a payment payload against the required payment details regardless of the scheme
@@ -96,6 +97,10 @@ export async function settle<transport extends Transport, chain extends Chain>(
       ? (payload.payload as ExactEvmPayload).authorization.from
       : "",
   };
+}
+
+export async function supported(signerAddress: string, network?: string) {
+  return buildSupported(signerAddress, network);
 }
 
 export type Supported = {
