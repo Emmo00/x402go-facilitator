@@ -21,6 +21,7 @@ import {
   permitWitnessTypes,
   ConnectedClient,
   SignerWallet,
+send as sendTransaction,
 } from "../../../types/shared/evm";
 import {
   PaymentPayload,
@@ -353,10 +354,7 @@ function simulateWithDeploy(
 // Cache positive results forever: a vault's address and merchant never change.
 const vaultCache = new Set<Address>();
 
-async function isOurVault(
-  client: ConnectedClient,
-  payTo: Address,
-): Promise<boolean> {
+async function isOurVault(client: ConnectedClient, payTo: Address): Promise<boolean> {
   if (vaultCache.has(payTo)) return true;
 
   try {
@@ -388,7 +386,7 @@ export async function verify(
   payload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
   operatorAddress: Address,
-  deploymentContext: VaultDeploymentContext
+  deploymentContext: VaultDeploymentContext,
 ): Promise<VerifyResponse> {
   const r = await prepare(client, payload, paymentRequirements, operatorAddress, deploymentContext);
   return r.ok
@@ -420,17 +418,19 @@ export async function settle(
   wallet: SignerWallet<Chain, Transport>,
   paymentPayload: PaymentPayload,
   paymentRequirements: PaymentRequirements,
-  deploymentContext: VaultDeploymentContext
+  deploymentContext: VaultDeploymentContext,
 ): Promise<SettleResponse> {
   const key = settlementKey(paymentPayload);
 
   const existing = recent.get(key);
   if (existing && Date.now() - existing.at < RETRY_WINDOW_MS) return existing.promise;
 
-  const promise = doSettle(wallet, paymentPayload, paymentRequirements, deploymentContext).then(res => {
-    if (!res.success) recent.delete(key); // only successes are replayed; failures may be retried
-    return res;
-  });
+  const promise = doSettle(wallet, paymentPayload, paymentRequirements, deploymentContext).then(
+    res => {
+      if (!res.success) recent.delete(key); // only successes are replayed; failures may be retried
+      return res;
+    },
+  );
   recent.set(key, { promise, at: Date.now() });
   return promise;
 }
@@ -455,14 +455,20 @@ async function doSettle<transport extends Transport, chain extends Chain>(
   });
 
   // 1. Re-verify now (state may have changed since /verify) and build the exact call to send
-  const prepared = await prepare(wallet as unknown as ConnectedClient, paymentPayload, paymentRequirements, wallet.account?.address ?? "", deploymentContext);
+  const prepared = await prepare(
+    wallet as unknown as ConnectedClient,
+    paymentPayload,
+    paymentRequirements,
+    wallet.account?.address ?? "",
+    deploymentContext,
+  );
   if (!prepared.ok) return fail(prepared.reason, { payer: prepared.payer });
   const { payer, vault, request } = prepared;
 
   // 2. One transaction to the vault: it collects the funds and splits them atomically
   let hash: Hex;
   try {
-    hash = await wallet.writeContract(request);
+    hash = await sendTransaction(wallet, request);
   } catch (e) {
     return fail("unexpected_settle_error", { payer, errorMessage: (e as Error).message });
   }

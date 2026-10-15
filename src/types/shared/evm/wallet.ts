@@ -12,7 +12,9 @@ import type {
 } from "viem";
 import { celo, celoSepolia } from "viem/chains";
 import { privateKeyToAccount } from "viem/accounts";
-import { Hex } from "viem";
+import type { Hex } from "viem";
+import { nonceManager } from "viem/nonce";
+import type { SimulateContractReturnType } from "viem";
 
 // Create a public client for reading data
 export type SignerWallet<
@@ -38,10 +40,7 @@ export type EvmSigner = SignerWallet<Chain, Transport, Account> | LocalAccount;
  * @param rpcUrl - Optional RPC URL to use for the client. If not provided, the default RPC URL will be used.
  * @returns A public client instance connected to the specified chain
  */
-export function createConnectedClient(
-  network: string,
-  rpcUrl?: string,
-): ConnectedClient {
+export function createConnectedClient(network: string, rpcUrl?: string): ConnectedClient {
   const chain = getChainFromNetwork(network);
 
   return createPublicClient({
@@ -67,7 +66,7 @@ export function createSigner(
   const walletClient = createWalletClient({
     chain,
     transport: rpcUrl ? http(rpcUrl) : http(),
-    account: privateKeyToAccount(privateKey),
+    account: privateKeyToAccount(privateKey, { nonceManager }),
   });
 
   return walletClient.extend(publicActions);
@@ -130,10 +129,38 @@ export function getChainFromNetwork(network: string | undefined): Chain {
 
   switch (network) {
     case "celo":
+    case "eip155:42220":
       return celo;
     case "celo-sepolia":
+    case "eip155:11142220":
       return celoSepolia;
     default:
       throw new Error(`Unsupported network: ${network}`);
+  }
+}
+
+const tails = new Map<string, Promise<unknown>>();
+
+function serialize<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const run = (tails.get(key) ?? Promise.resolve()).then(fn, fn);
+  tails.set(
+    key,
+    run.catch(() => {}),
+  );
+  return run;
+}
+
+export async function send(wallet: SignerWallet, request: SimulateContractReturnType["request"]) {
+  const chainId = wallet.chain.id;
+  const account = wallet.account!;
+  const attempt = () =>
+    serialize(String(chainId), () => wallet.writeContract({ ...request, account }));
+  try {
+    return await attempt();
+  } catch (e) {
+    account.nonceManager?.reset({ address: account.address, chainId });
+    if (/nonce too low|already known|replacement transaction underpriced/i.test(String(e)))
+      return attempt();
+    throw e;
   }
 }

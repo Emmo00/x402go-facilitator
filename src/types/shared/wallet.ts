@@ -1,6 +1,6 @@
 import * as evm from "./evm/wallet";
 import { SupportedEVMNetworks } from "./network";
-import { Hex } from "viem";
+import type { Hex } from "viem";
 import { X402Config } from "../config";
 
 export type ConnectedClient = evm.ConnectedClient;
