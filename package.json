@@ -30,7 +30,6 @@
   },
   "scripts": {
     "build": "tsup",
-    "postbuild": "npm link",
     "dev:setup": "npm run build && cd examples/nestjs && npm run dev:link",
     "dev:teardown": "cd examples/nestjs && npm run dev:unlink",
     "test": "vitest run",
@@ -84,12 +83,6 @@
     "vitest": "^3.0.5"
   },
   "dependencies": {
-    "@scure/base": "^1.2.6",
-    "@solana-program/compute-budget": "^0.8.0",
-    "@solana-program/token": "^0.5.1",
-    "@solana-program/token-2022": "^0.4.2",
-    "@solana/kit": "^2.1.1",
-    "@solana/transaction-confirmation": "^2.1.1",
     "viem": "^2.21.26",
     "zod": "^3.24.2"
   },
