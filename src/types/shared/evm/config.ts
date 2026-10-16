@@ -17,7 +17,7 @@ export interface ChainConfig {
   network: `eip155:${number}`;     // CAIP-2, used by v2
   chain: Chain;
   rpcUrl: string;
-  factory: Address;                // one X402VaultFactory per chain
+  factory: Address;                // one X402PaymentRelayerFactory per chain
   permit2: Address;
   x402Proxy: Address;
   extensions: string[];            // only list what your vault implements (settleWithPermit)
@@ -46,6 +46,7 @@ export const CHAINS: ChainConfig[] = [
       { address: "0xcebA9300f2b948710d2653dD7B07f33A8B32118C", symbol: "USDC", decimals: 6, name: "USDC", version: "2", assetTransferMethod: "eip3009" },
       { address: "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e", symbol: "USDT", decimals: 6, name: "Tether USD", version: "1", assetTransferMethod: "eip3009" },
       { address: "0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771", symbol: "USAT", decimals: 6, name: "Tether America USD", version: "1", assetTransferMethod: "eip3009" },
+      { address: "0xF6829D7393dAe24509eb1E52eE8e572e2E271a4f", symbol: "cNGN", decimals: 6, name: "cNGN", version: "1", assetTransferMethod: "permit2" },
     ],
   },
   {

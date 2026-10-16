@@ -51,7 +51,7 @@ import {
 } from "../../../types/shared/evm/config";
 import {
   factoryAbi,
-  vaultAbi,
+  relayerAbi,
   erc3009Abi,
   permit2Abi,
   erc20Abi,
@@ -314,14 +314,14 @@ function simulate(
     ? client.simulateContract({
         account,
         address: vault,
-        abi: vaultAbi,
+        abi: relayerAbi,
         functionName: "settle",
         args: params.args,
       })
     : client.simulateContract({
         account,
         address: vault,
-        abi: vaultAbi,
+        abi: relayerAbi,
         functionName: "settleWithPermit2",
         args: params.args,
       });
@@ -361,7 +361,7 @@ async function isOurVault(client: ConnectedClient, payTo: Address): Promise<bool
     if (!(await client.getCode({ address: payTo }))) return false;
     const merchant = (await client.readContract({
       address: payTo,
-      abi: vaultAbi,
+      abi: relayerAbi,
       functionName: "merchant",
     })) as unknown as Address;
 
@@ -491,7 +491,7 @@ async function doSettle<transport extends Transport, chain extends Chain>(
   }
 
   // 4. Don't trust status alone: confirm this vault actually emitted Settle
-  const settled = parseEventLogs({ abi: vaultAbi, eventName: "Settle", logs: receipt.logs }).some(
+  const settled = parseEventLogs({ abi: relayerAbi, eventName: "Settle", logs: receipt.logs }).some(
     log => isAddressEqual(log.address, vault),
   );
   if (!settled) return fail("invalid_transaction_state", { payer, transaction: hash });
