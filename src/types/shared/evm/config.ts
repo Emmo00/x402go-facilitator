@@ -61,6 +61,7 @@ export const CHAINS: ChainConfig[] = [
     defaultAsset: "0x01C5C0122039549AD1493B8220cABEdD739BC44E",
     assets: [
       { address: "0x01C5C0122039549AD1493B8220cABEdD739BC44E", symbol: "USDC", decimals: 6, name: "USDC", version: "2", assetTransferMethod: "eip3009" },
+      { address: "0x3fA1BB876362ed774eBa6a7EE2Bb66521E8f0c49", symbol: "tUSDC", decimals: 18, name: "Test USD Coin", version: "1", assetTransferMethod: "permit2" },
     ],
   },
 ];
