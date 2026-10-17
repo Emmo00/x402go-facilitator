@@ -25,6 +25,8 @@ export interface ChainConfig {
   assets: AssetConfig[];
 }
 
+export const TRANSACTION_TAG = "celo_b2cf011e82d7";
+
 export const FACTORY: Address = "0xdfBB7b9F9449024A36E34539f94e1ca14f404ef6"
 
 export const PERMIT2: Address = "0x000000000022D473030F116dDEE9F6B43aC78BA3";

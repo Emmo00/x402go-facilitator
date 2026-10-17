@@ -14,6 +14,7 @@ import {
   ContractFunctionRevertedError,
   SimulateContractReturnType,
 } from "viem";
+import { toDataSuffix } from "@celo/attribution-tags";
 import type { VaultDeploymentContext } from "../../../types/config";
 import { getERC20Balance } from "../../../shared/evm";
 import {
@@ -21,7 +22,7 @@ import {
   permitWitnessTypes,
   ConnectedClient,
   SignerWallet,
-send as sendTransaction,
+  send as sendTransaction,
 } from "../../../types/shared/evm";
 import {
   PaymentPayload,
@@ -48,6 +49,7 @@ import {
   X402_PROXY,
   resolveChain,
   getAsset,
+  TRANSACTION_TAG,
 } from "../../../types/shared/evm/config";
 import {
   factoryAbi,
@@ -310,6 +312,8 @@ function simulate(
   vault: Address,
   params: SimulateSettleParameters,
 ) {
+  const tag = toDataSuffix(TRANSACTION_TAG);
+
   return params.type === "settle"
     ? client.simulateContract({
         account,
@@ -317,6 +321,7 @@ function simulate(
         abi: relayerAbi,
         functionName: "settle",
         args: params.args,
+        dataSuffix: tag,
       })
     : client.simulateContract({
         account,
@@ -324,6 +329,7 @@ function simulate(
         abi: relayerAbi,
         functionName: "settleWithPermit2",
         args: params.args,
+        dataSuffix: tag,
       });
 }
 
@@ -334,6 +340,8 @@ function simulateWithDeploy(
   deploymentContext: VaultDeploymentContext,
   params: SimulateSettleParameters,
 ) {
+  const tag = toDataSuffix(TRANSACTION_TAG);
+
   return params.type === "settle"
     ? client.simulateContract({
         account,
@@ -341,6 +349,7 @@ function simulateWithDeploy(
         abi: factoryAbi,
         functionName: "createVaultAndSettle",
         args: [deploymentContext.merchant, deploymentContext.payout, ...params.args],
+        dataSuffix: tag,
       })
     : client.simulateContract({
         account,
@@ -348,6 +357,7 @@ function simulateWithDeploy(
         abi: factoryAbi,
         functionName: "createVaultAndSettleWithPermit2",
         args: [deploymentContext.merchant, deploymentContext.payout, ...params.args],
+        dataSuffix: tag,
       });
 }
 
