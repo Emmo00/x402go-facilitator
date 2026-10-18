@@ -44,7 +44,7 @@ export async function verify(
         payload,
         paymentRequirements,
         config.operatorAddress,
-        config.deploymentContext,
+        { ...config.deploymentContext, transactionTag: config.transactionTag },
       );
     }
   }
@@ -83,7 +83,7 @@ export async function settle<transport extends Transport, chain extends Chain>(
         client as EvmSignerWallet<Chain, Transport>,
         payload,
         paymentRequirements,
-        config.deploymentContext,
+        { ...config.deploymentContext, transactionTag: config.transactionTag },
       );
     }
   }

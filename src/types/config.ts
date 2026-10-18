@@ -11,7 +11,11 @@ export interface EvmConfig {
   rpcUrl?: string;
 }
 
-export type VaultDeploymentContext = { merchant: Address; payout: Address };
+export type VaultDeploymentContext = {
+  merchant: Address;
+  payout: Address;
+  transactionTag?: string;
+};
 
 /**
  * Configuration options for X402 client and facilitator operations.
@@ -21,4 +25,5 @@ export interface X402Config {
   evmConfig?: EvmConfig;
   operatorAddress?: Address;
   deploymentContext: VaultDeploymentContext;
+  transactionTag?: string;
 }

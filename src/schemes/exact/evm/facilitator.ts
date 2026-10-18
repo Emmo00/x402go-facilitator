@@ -286,13 +286,14 @@ export async function prepare(
   // 5. Source of truth: simulate the exact call /settle will send
   try {
     const { request } = (await (deployed
-      ? simulate(client, sender, payTo, simulateParameters)
+      ? simulate(client, sender, payTo, simulateParameters, deploymentContext.transactionTag)
       : simulateWithDeploy(
           client,
           sender,
           FACTORY,
           deploymentContext!,
           simulateParameters,
+          deploymentContext.transactionTag
         ))) as unknown as SimulateContractReturnType;
     return { ok: true, payer, vault: payTo, request };
   } catch (e) {
@@ -311,8 +312,9 @@ function simulate(
   account: Address,
   vault: Address,
   params: SimulateSettleParameters,
+  transactionTag: string = TRANSACTION_TAG,
 ) {
-  const tag = toDataSuffix(TRANSACTION_TAG);
+  const tag = toDataSuffix(transactionTag);
 
   return params.type === "settle"
     ? client.simulateContract({
@@ -339,8 +341,9 @@ function simulateWithDeploy(
   factory: Address,
   deploymentContext: VaultDeploymentContext,
   params: SimulateSettleParameters,
+  transactionTag: string = TRANSACTION_TAG
 ) {
-  const tag = toDataSuffix(TRANSACTION_TAG);
+  const tag = toDataSuffix(transactionTag);
 
   return params.type === "settle"
     ? client.simulateContract({
