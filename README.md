@@ -1,10 +1,9 @@
-# x402 Hydra Facilitator
+# x402go Facilitator
 
-A TypeScript library implementing the [x402 Payment Protocol](https://github.com/Hydraprotocol402/Hydra-Facilitator) facilitator pattern. This library provides payment verification and settlement functionality for both EVM and SVM (Solana Virtual Machine) networks.
-
-**Version:** 0.7.0
-**License:** Apache-2.0
-**Repository:** [Hydraprotocol402/Hydra-Facilitator](https://github.com/Hydraprotocol402/Hydra-Facilitator)
+A TypeScript facilitator library for x402go, forked from
+[Hydraprotocol402/Hydra-Facilitator](https://github.com/Hydraprotocol402/Hydra-Facilitator).
+It implements payment verification and settlement for EVM and SVM (Solana
+Virtual Machine) networks. x402go's backend uses this package directly.
 
 ## Overview
 
@@ -25,38 +24,25 @@ The facilitator is an optional but recommended service that simplifies payment v
 - ✅ **Scheme-agnostic**: Extensible architecture supporting multiple payment schemes (currently "exact")
 - ✅ **Zero-custody**: Never holds funds, only facilitates onchain transactions
 
-## Installation
-
-```bash
-pnpm add x402-hydra-facilitator
-# or
-npm install x402-hydra-facilitator
-# or
-yarn add x402-hydra-facilitator
-```
-
 ## Supported Networks
 
 ### EVM Networks
-- **Base**: `base`, `base-sepolia`
-- **Polygon**: `polygon`, `polygon-amoy`
-- **Avalanche**: `avalanche`, `avalanche-fuji`
-- **Abstract**: `abstract`, `abstract-testnet`
-- **Sei**: `sei`, `sei-testnet`
-- **IoTeX**: `iotex`
-- **Peaq**: `peaq`
+
+- **Celo**: `celo`, `celo-sepolia`
+
 
 ### SVM Networks
-- **Solana**: `solana`, `solana-devnet`
+
+- []
 
 ## Quick Start
 
 ### Basic Usage
 
 ```typescript
-import { verify, settle } from "x402-hydra-facilitator";
-import { createConnectedClient, createSigner } from "x402-hydra-facilitator/shared";
-import type { PaymentPayload, PaymentRequirements } from "x402-hydra-facilitator/types";
+import { verify, settle } from "x402go-facilitator";
+import { createConnectedClient, createSigner } from "x402go-facilitator/shared";
+import type { PaymentPayload, PaymentRequirements } from "x402go-facilitator/types";
 
 // Verification (read-only, no private key needed)
 const client = createConnectedClient("base-sepolia");
@@ -132,7 +118,7 @@ interface SettleResponse {
 #### EVM Networks
 
 ```typescript
-import { createConnectedClient, createSigner } from "x402-hydra-facilitator/shared";
+import { createConnectedClient, createSigner } from "x402go-facilitator/shared";
 
 // For verification (read-only)
 const client = createConnectedClient("base-sepolia");
@@ -144,7 +130,7 @@ const signer = createSigner("base-sepolia", "0x...");
 #### SVM Networks
 
 ```typescript
-import { createSigner } from "x402-hydra-facilitator/shared";
+import { createSigner } from "x402go-facilitator/shared";
 
 // Both verification and settlement require a signer
 // Private key must be base58 encoded string
@@ -205,9 +191,9 @@ npm run dev:unlink # Uses published package
 
 ```typescript
 import express from "express";
-import { verify, settle } from "x402-hydra-facilitator";
-import { createConnectedClient, createSigner } from "x402-hydra-facilitator/shared";
-import { PaymentPayloadSchema, PaymentRequirementsSchema } from "x402-hydra-facilitator/types";
+import { verify, settle } from "x402go-facilitator";
+import { createConnectedClient, createSigner } from "x402go-facilitator/shared";
+import { PaymentPayloadSchema, PaymentRequirementsSchema } from "x402go-facilitator/types";
 
 const app = express();
 app.use(express.json());
@@ -326,12 +312,12 @@ pnpm format
 
 The package exports multiple entry points:
 
-- `x402-hydra-facilitator` - Main facilitator functions
-- `x402-hydra-facilitator/facilitator` - Facilitator module
-- `x402-hydra-facilitator/shared` - Shared utilities and client creation
-- `x402-hydra-facilitator/shared/evm` - EVM-specific utilities
-- `x402-hydra-facilitator/schemes` - Payment scheme implementations
-- `x402-hydra-facilitator/types` - TypeScript type definitions
+- `x402go-facilitator` - Main facilitator functions
+- `x402go-facilitator/facilitator` - Facilitator module
+- `x402go-facilitator/shared` - Shared utilities and client creation
+- `x402go-facilitator/shared/evm` - EVM-specific utilities
+- `x402go-facilitator/schemes` - Payment scheme implementations
+- `x402go-facilitator/types` - TypeScript type definitions
 
 ## Best Practices
 
@@ -353,4 +339,3 @@ Contributions are welcome! Please see the repository for contribution guidelines
 ## Related Projects
 
 - [x402 Specifications](https://github.com/Hydraprotocol402/Hydra-Facilitator) - The x402 protocol specification
-

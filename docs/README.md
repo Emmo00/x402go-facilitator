@@ -1,13 +1,18 @@
-# x402 Hydra Facilitator Documentation
+# x402go Facilitator Documentation
 
-Welcome to the comprehensive documentation for the x402 Hydra Facilitator project. This documentation is split into two main sections:
+This documentation covers x402go's locally operated facilitator. The package is
+a fork of [Hydraprotocol402/Hydra-Facilitator](https://github.com/Hydraprotocol402/Hydra-Facilitator),
+adapted for x402go's backend and settlement flow. It is split into two sections:
 
 1. **[Facilitator Package](./facilitator-package/README.md)** - The npm package that provides payment verification and settlement functionality
 2. **[NestJS Backend](./nestjs-backend/README.md)** - The production-ready backend application that uses the facilitator package
 
-## What is x402 Hydra Facilitator?
+## What is the x402go facilitator?
 
-The x402 Hydra Facilitator is an implementation of the [x402 Payment Protocol](https://docs.cdp.coinbase.com/x402/core-concepts/facilitator) facilitator pattern. It simplifies payment verification and settlement between clients (buyers) and servers (sellers) by providing:
+The x402go facilitator is a direct implementation of the
+[x402 Payment Protocol](https://docs.cdp.coinbase.com/x402/core-concepts/facilitator)
+facilitator pattern. It verifies signed payment payloads and submits settlement
+transactions to supported chains:
 
 - **Payment Verification**: Confirm that client payment payloads meet server payment requirements
 - **Payment Settlement**: Submit validated payments to the blockchain and monitor for confirmation
@@ -18,7 +23,9 @@ The x402 Hydra Facilitator is an implementation of the [x402 Payment Protocol](h
 
 ### Facilitator Package Documentation
 
-The facilitator package (`x402-hydra-facilitator`) is published to npm and provides the core functionality for verifying and settling payments.
+The facilitator package (`x402go-facilitator`) provides the core functionality
+for verifying and settling payments. The x402go backend invokes it locally; it
+does not proxy requests to Celo's hosted facilitator.
 
 **Quick Links:**
 - [Package Overview](./facilitator-package/README.md) - Overview and quick start
@@ -109,4 +116,3 @@ Contributions are welcome! Please see the main repository for contribution guide
 ## License
 
 Licensed under the Apache License, Version 2.0.
-

@@ -1,6 +1,7 @@
 # Installation
 
-This guide covers installing and setting up the `x402-hydra-facilitator` package.
+This guide covers installing and setting up the local `x402go-facilitator`
+package, forked from Hydra Facilitator.
 
 ## Prerequisites
 
@@ -12,19 +13,19 @@ This guide covers installing and setting up the `x402-hydra-facilitator` package
 ### Using pnpm (Recommended)
 
 ```bash
-pnpm add x402-hydra-facilitator
+pnpm add x402go-facilitator
 ```
 
 ### Using npm
 
 ```bash
-npm install x402-hydra-facilitator
+npm install x402go-facilitator
 ```
 
 ### Using yarn
 
 ```bash
-yarn add x402-hydra-facilitator
+yarn add x402go-facilitator
 ```
 
 ## TypeScript Setup
@@ -51,34 +52,34 @@ The package supports both ESM and CommonJS imports:
 ### ESM (Recommended)
 
 ```typescript
-import { verify, settle } from "x402-hydra-facilitator";
-import { createConnectedClient, createSigner } from "x402-hydra-facilitator/shared";
-import type { PaymentPayload, PaymentRequirements } from "x402-hydra-facilitator/types";
+import { verify, settle } from "x402go-facilitator";
+import { createConnectedClient, createSigner } from "x402go-facilitator/shared";
+import type { PaymentPayload, PaymentRequirements } from "x402go-facilitator/types";
 ```
 
 ### CommonJS
 
 ```typescript
-const { verify, settle } = require("x402-hydra-facilitator");
-const { createConnectedClient, createSigner } = require("x402-hydra-facilitator/shared");
+const { verify, settle } = require("x402go-facilitator");
+const { createConnectedClient, createSigner } = require("x402go-facilitator/shared");
 ```
 
 ## Available Entry Points
 
-- `x402-hydra-facilitator` - Main facilitator functions
-- `x402-hydra-facilitator/facilitator` - Facilitator module
-- `x402-hydra-facilitator/shared` - Shared utilities and client creation
-- `x402-hydra-facilitator/shared/evm` - EVM-specific utilities
-- `x402-hydra-facilitator/schemes` - Payment scheme implementations
-- `x402-hydra-facilitator/types` - TypeScript type definitions
+- `x402go-facilitator` - Main facilitator functions
+- `x402go-facilitator/facilitator` - Facilitator module
+- `x402go-facilitator/shared` - Shared utilities and client creation
+- `x402go-facilitator/shared/evm` - EVM-specific utilities
+- `x402go-facilitator/schemes` - Payment scheme implementations
+- `x402go-facilitator/types` - TypeScript type definitions
 
 ## Verification
 
 After installation, verify the package is working:
 
 ```typescript
-import { verify } from "x402-hydra-facilitator";
-import { x402Version } from "x402-hydra-facilitator";
+import { verify } from "x402go-facilitator";
+import { x402Version } from "x402go-facilitator";
 
 console.log(`x402 version: ${x402Version}`); // Should output: 1
 ```
@@ -87,4 +88,3 @@ console.log(`x402 version: ${x402Version}`); // Should output: 1
 
 - [Getting Started Guide](./guides/getting-started.md) - Step-by-step tutorial
 - [API Reference](./api-reference/core-functions.md) - Complete API documentation
-

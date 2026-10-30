@@ -1,6 +1,10 @@
-# Facilitator Package
+# x402go Facilitator Package
 
-The `x402-hydra-facilitator` package is a TypeScript library that implements the x402 Payment Protocol facilitator pattern. It provides payment verification and settlement functionality for both EVM and SVM (Solana Virtual Machine) networks.
+The `x402go-facilitator` package is x402go's local TypeScript implementation of
+the x402 Payment Protocol facilitator pattern. It is forked from
+[Hydraprotocol402/Hydra-Facilitator](https://github.com/Hydraprotocol402/Hydra-Facilitator)
+and provides payment verification and settlement for EVM and SVM networks.
+The x402go backend calls it directly; it is not a proxy to a hosted facilitator.
 
 ## Overview
 
@@ -16,11 +20,11 @@ The facilitator does **not** hold funds or act as a custodian. It performs verif
 ## Installation
 
 ```bash
-pnpm add x402-hydra-facilitator
+pnpm add x402go-facilitator
 # or
-npm install x402-hydra-facilitator
+npm install x402go-facilitator
 # or
-yarn add x402-hydra-facilitator
+yarn add x402go-facilitator
 ```
 
 See [Installation Guide](./installation.md) for detailed setup instructions.
@@ -28,9 +32,9 @@ See [Installation Guide](./installation.md) for detailed setup instructions.
 ## Quick Start
 
 ```typescript
-import { verify, settle } from "x402-hydra-facilitator";
-import { createConnectedClient, createSigner } from "x402-hydra-facilitator/shared";
-import type { PaymentPayload, PaymentRequirements } from "x402-hydra-facilitator/types";
+import { verify, settle } from "x402go-facilitator";
+import { createConnectedClient, createSigner } from "x402go-facilitator/shared";
+import type { PaymentPayload, PaymentRequirements } from "x402go-facilitator/types";
 
 // Verification (read-only, no private key needed)
 const client = createConnectedClient("base-sepolia");
@@ -78,12 +82,12 @@ See [Getting Started Guide](./guides/getting-started.md) for a complete tutorial
 
 The package exports multiple entry points:
 
-- `x402-hydra-facilitator` - Main facilitator functions (`verify`, `settle`)
-- `x402-hydra-facilitator/facilitator` - Facilitator module
-- `x402-hydra-facilitator/shared` - Shared utilities and client creation
-- `x402-hydra-facilitator/shared/evm` - EVM-specific utilities
-- `x402-hydra-facilitator/schemes` - Payment scheme implementations
-- `x402-hydra-facilitator/types` - TypeScript type definitions
+- `x402go-facilitator` - Main facilitator functions (`verify`, `settle`)
+- `x402go-facilitator/facilitator` - Facilitator module
+- `x402go-facilitator/shared` - Shared utilities and client creation
+- `x402go-facilitator/shared/evm` - EVM-specific utilities
+- `x402go-facilitator/schemes` - Payment scheme implementations
+- `x402go-facilitator/types` - TypeScript type definitions
 
 ## Documentation
 
@@ -140,4 +144,3 @@ The architecture supports adding additional schemes. See [Schemes Documentation]
 - [Main Documentation](../README.md) - Main documentation index
 - [NestJS Backend](../nestjs-backend/README.md) - Backend application using this package
 - [Package README](../../README.md) - Package README with quick reference
-
