@@ -1,4 +1,4 @@
-import { isAddressEqual, type Address, type Chain } from "viem";
+import { isAddressEqual, parseEther, type Address, type Chain } from "viem";
 import { celo, celoSepolia } from "viem/chains";
 
 export type TransferMethod = "eip3009" | "permit2";
@@ -23,6 +23,7 @@ export interface ChainConfig {
   extensions: string[];            // only list what your vault implements (settleWithPermit)
   defaultAsset: Address;
   assets: AssetConfig[];
+  minSignerBalance: bigint;
 }
 
 export const TRANSACTION_TAG = "celo_b2cf011e82d7";
@@ -50,6 +51,7 @@ export const CHAINS: ChainConfig[] = [
       { address: "0xD2ab3C9A02DBBAB236BfEC45D1d755DF4267F771", symbol: "USAT", decimals: 6, name: "Tether America USD", version: "1", assetTransferMethod: "eip3009" },
       { address: "0xF6829D7393dAe24509eb1E52eE8e572e2E271a4f", symbol: "cNGN", decimals: 6, name: "cNGN", version: "1", assetTransferMethod: "permit2" },
     ],
+    minSignerBalance: parseEther("0.01"),
   },
   {
     v1Network: "celo-sepolia",
@@ -65,6 +67,7 @@ export const CHAINS: ChainConfig[] = [
       { address: "0x01C5C0122039549AD1493B8220cABEdD739BC44E", symbol: "USDC", decimals: 6, name: "USDC", version: "2", assetTransferMethod: "eip3009" },
       { address: "0x3fA1BB876362ed774eBa6a7EE2Bb66521E8f0c49", symbol: "tUSDC", decimals: 18, name: "Test USD Coin", version: "1", assetTransferMethod: "permit2" },
     ],
+    minSignerBalance: parseEther("0.001"),
   },
 ];
 
